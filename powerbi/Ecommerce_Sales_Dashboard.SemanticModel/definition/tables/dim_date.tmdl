@@ -1,0 +1,113 @@
+table dim_date
+	lineageTag: e734a628-cd91-4097-8aa1-94b17246b60e
+	dataCategory: Time
+
+	column Date
+		dataType: dateTime
+		isKey
+		formatString: dd mmm yyyy
+		lineageTag: 4b521137-104f-4b6c-92ab-1c17a7eb82b2
+		summarizeBy: none
+		sourceColumn: Date
+
+	column Year
+		dataType: int64
+		formatString: 0
+		lineageTag: fc81af9a-d533-46f2-bd9b-ff07dc201569
+		summarizeBy: none
+		sourceColumn: Year
+
+	column MonthNum
+		dataType: int64
+		formatString: 0
+		lineageTag: 1e453ce8-1986-4033-89fb-ff581196142b
+		summarizeBy: none
+		sourceColumn: MonthNum
+
+	column MonthName
+		dataType: string
+		lineageTag: 4e98d1c0-0d67-4e74-ab4f-f21db8619f57
+		summarizeBy: none
+		sourceColumn: MonthName
+		sortByColumn: MonthNum
+
+	column MonthStart
+		dataType: dateTime
+		formatString: dd mmm yyyy
+		lineageTag: 471b7bcf-1f98-495f-bbd4-a6049db215e2
+		summarizeBy: none
+		sourceColumn: MonthStart
+
+	column YearMonth
+		dataType: string
+		lineageTag: 35b42b45-b837-44d5-a5d1-917615addba5
+		summarizeBy: none
+		sourceColumn: YearMonth
+
+	column QuarterNum
+		dataType: int64
+		formatString: 0
+		lineageTag: c3b6c1f4-141d-4c47-a98c-ec3926e0d788
+		summarizeBy: none
+		sourceColumn: QuarterNum
+
+	column Quarter
+		dataType: string
+		lineageTag: 05f1da40-8a58-40fe-aa6e-3c1e749f72ed
+		summarizeBy: none
+		sourceColumn: Quarter
+		sortByColumn: QuarterNum
+
+	column DayOfMonth
+		dataType: int64
+		formatString: 0
+		lineageTag: 6e783a06-e829-42b1-9e59-f58fe5e7bea0
+		summarizeBy: none
+		sourceColumn: DayOfMonth
+
+	column WeekdayNum
+		dataType: int64
+		formatString: 0
+		lineageTag: 5fd84ea0-a3bc-4ba2-a753-c6a2e32784ba
+		summarizeBy: none
+		sourceColumn: WeekdayNum
+
+	column WeekdayName
+		dataType: string
+		lineageTag: abb78019-2fdc-40ee-b439-88a0f95df576
+		summarizeBy: none
+		sourceColumn: WeekdayName
+		sortByColumn: WeekdayNum
+
+	column IsWeekend
+		dataType: boolean
+		lineageTag: c067d006-21ae-4ff8-9561-b7a3e0b7b091
+		summarizeBy: none
+		sourceColumn: IsWeekend
+
+	partition dim_date = m
+		mode: import
+		source =
+				let
+				    StartDate = Date.StartOfYear(List.Min(fact_orders[OrderDate])),
+				    EndDate = Date.EndOfYear(List.Max(fact_orders[OrderDate])),
+				    DayCount = Duration.Days(EndDate - StartDate) + 1,
+				    Dates = List.Dates(StartDate, DayCount, #duration(1, 0, 0, 0)),
+				    AsTable = Table.FromList(Dates, Splitter.SplitByNothing(), {"Date"}, null, ExtraValues.Error),
+				    Typed = Table.TransformColumnTypes(AsTable, {{"Date", type date}}),
+				    AddYear = Table.AddColumn(Typed, "Year", each Date.Year([Date]), Int64.Type),
+				    AddMonthNum = Table.AddColumn(AddYear, "MonthNum", each Date.Month([Date]), Int64.Type),
+				    AddMonthName = Table.AddColumn(AddMonthNum, "MonthName", each Date.ToText([Date], "MMM", "en-US"), type text),
+				    AddMonthStart = Table.AddColumn(AddMonthName, "MonthStart", each Date.StartOfMonth([Date]), type date),
+				    AddYearMonth = Table.AddColumn(AddMonthStart, "YearMonth", each Date.ToText([Date], "yyyy-MM", "en-US"), type text),
+				    AddQuarterNum = Table.AddColumn(AddYearMonth, "QuarterNum", each Date.QuarterOfYear([Date]), Int64.Type),
+				    AddQuarter = Table.AddColumn(AddQuarterNum, "Quarter", each "Q" & Text.From([QuarterNum]), type text),
+				    AddDay = Table.AddColumn(AddQuarter, "DayOfMonth", each Date.Day([Date]), Int64.Type),
+				    AddWeekdayNum = Table.AddColumn(AddDay, "WeekdayNum", each Date.DayOfWeek([Date], Day.Monday) + 1, Int64.Type),
+				    AddWeekdayName = Table.AddColumn(AddWeekdayNum, "WeekdayName", each Date.ToText([Date], "ddd", "en-US"), type text),
+				    AddIsWeekend = Table.AddColumn(AddWeekdayName, "IsWeekend", each [WeekdayNum] >= 6, type logical)
+				in
+				    AddIsWeekend
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,20 @@
+relationship ac629370-c1f2-4f39-ba65-bddafa367d3d
+	fromColumn: fact_orders.CustomerID
+	toColumn: dim_customers.CustomerID
+
+relationship 9df6cf87-dc0d-4567-97be-24f9006205a6
+	fromColumn: fact_orders.ProductID
+	toColumn: dim_products.ProductID
+
+relationship 68c10bfe-b33a-41a7-913a-2b45498c8ac7
+	fromColumn: fact_orders.LocationID
+	toColumn: dim_location.LocationID
+
+relationship 2e73c576-588c-43a5-9c3d-3bdfb150be59
+	fromColumn: fact_orders.OrderDate
+	toColumn: dim_date.Date
+
+relationship 9977a70d-81a1-4ce0-9d8f-d61da6cc42ee
+	fromColumn: fact_payments.OrderID
+	toColumn: fact_orders.OrderID
+

@@ -1,0 +1,80 @@
+table dim_location
+	lineageTag: 931b0e7b-e6db-4de9-bdf2-a1aea443deaa
+
+	column LocationID
+		dataType: string
+		lineageTag: 69e9a14f-867d-49dd-b877-fb99c52e31bb
+		summarizeBy: none
+		sourceColumn: LocationID
+
+	column City
+		dataType: string
+		lineageTag: fe51cf9d-48a7-4f7b-a45d-aac9bcf30bd2
+		summarizeBy: none
+		sourceColumn: City
+
+	column State
+		dataType: string
+		lineageTag: d24555a8-6b8a-4bf8-80b0-2a13ebbfc31a
+		summarizeBy: none
+		sourceColumn: State
+
+	column Region
+		dataType: string
+		lineageTag: 7164ee41-013d-4bca-93aa-400373aad257
+		summarizeBy: none
+		sourceColumn: Region
+
+	column 'City State' = dim_location[City] & ", " & dim_location[State]
+		dataType: string
+		lineageTag: a4458e84-ea6a-41c7-8898-64033c90c4b7
+		summarizeBy: none
+
+	column 'State Sales' = CALCULATE ( SUM ( fact_orders[Sales] ), ALLEXCEPT ( dim_location, dim_location[State] ) )
+		dataType: int64
+		formatString: """₹""#,##0"""
+		lineageTag: c123fabc-7f66-48ab-b989-8285de593328
+		summarizeBy: none
+
+	column 'State Sales Rank' = RANKX ( dim_location, dim_location[State Sales], , DESC, DENSE )
+		dataType: int64
+		formatString: 0
+		lineageTag: 74dbe7ac-3a06-49ed-8e78-dc015ebf2115
+		summarizeBy: none
+
+	column 'Top 5 State Flag' = IF ( dim_location[State Sales Rank] <= 5, "Top 5", "Others" )
+		dataType: string
+		lineageTag: 9fde088d-9bd7-4b98-ad15-97681743f375
+		summarizeBy: none
+
+	partition dim_location = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(
+				        Binary.Decompress(Binary.FromText("dZLJcsIwEETv+Qo+oA/YQJZjIKksLKEgy7lBKiQwUkqWivLfZwyxDynn4pLnjUbTPTPzW0br3csDJjZWWEdGjZXeSexq1s8wT8cNLeY0DCxNDMSXLqOwHMvkdBcZYMHddwpdbIhZ2h6cP+EjRobeMlDp0mDhQzTCR3Kyiv/Qa0zp6srd+Aaf8p5jaf9JuMVYux2LFJJUCo6RB2Lt05neYV6VnSjrY2K0c+LEO4+26C2oUgszTLwVm6IPuovnuDdHrbihwlPaS4vx145sgHWqf/+Eh1joU+9BF8bi8v1VkI0w9cVBmjun9i5y8MjztWssGR0xtuJ7E7zB2KQNnS5PEnxTtjRs2C1WdFsp/yoXDoZONeQOL07VeuZUpmLr5KXBvC9F/be83I0zERTSLvCIZ4ZKRtIIyHNZAGVsHZL92XPTkgFeaevhrriXJqSbFg1FmOPe4sk3m5SP8FwpHc6uvuuCYoRrB5bLpvha2FQyiib8Aw==", BinaryEncoding.Base64), Compression.Deflate),
+				        [Delimiter = ",", Columns = 4, Encoding = 65001, QuoteStyle = QuoteStyle.Csv]
+				    ),
+				    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				    Typed = Table.TransformColumnTypes(
+				        Promoted,
+				        {{"LocationID", type text}, {"City", type text}, {"State", type text}, {"Region", type text}},
+				        "en-US"
+				    ),
+				    Cleaned = Table.TransformColumns(
+				        Typed,
+				        {
+				            {"LocationID", each Text.Upper(Text.Trim(_)), type text},
+				            {"City", each Text.Proper(Text.Trim(_)), type text},
+				            {"State", each Text.Proper(Text.Trim(_)), type text},
+				            {"Region", each Text.Proper(Text.Trim(_)), type text}
+				        }
+				    ),
+				    NoMissing = Table.SelectRows(Cleaned, each [LocationID] <> null and [LocationID] <> "" and [State] <> null),
+				    NoDuplicates = Table.Distinct(NoMissing, {"LocationID"}),
+				    Sorted = Table.Sort(NoDuplicates, {{"LocationID", Order.Ascending}})
+				in
+				    Sorted
+
+	annotation PBI_ResultType = Table
+

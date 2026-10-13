@@ -1,0 +1,488 @@
+table _Measures
+	lineageTag: 4c37ce9f-4a83-4969-9696-d1eaf6ffce43
+
+	measure 'Total Sales' = SUM ( fact_orders[Sales] )
+		formatString: """₹""#,##0"""
+		lineageTag: 2a500762-fc10-491c-a84c-b25de364aed1
+
+	measure 'Total Profit' = SUM ( fact_orders[Profit] )
+		formatString: """₹""#,##0"""
+		lineageTag: e815cd79-d861-4b27-b332-f6fae4e64c60
+
+	measure 'Total Orders' = DISTINCTCOUNT ( fact_orders[OrderID] )
+		formatString: #,##0
+		lineageTag: 1568655f-aa96-40e8-b4c9-49759e81832f
+
+	measure 'Total Customers' = DISTINCTCOUNT ( fact_orders[CustomerID] )
+		formatString: #,##0
+		lineageTag: 0ec01357-b403-4b76-96a9-30f5dafe6dc9
+
+	measure 'Total Quantity' = SUM ( fact_orders[Qty] )
+		formatString: #,##0
+		lineageTag: 4a937022-9068-4e1a-8af3-2e2e0a8e284f
+
+	measure 'Avg Order Value' = DIVIDE ( [Total Sales], [Total Orders] )
+		formatString: """₹""#,##0"""
+		lineageTag: 5719dfd6-137a-4c77-af5e-da485c0956ac
+
+	measure 'Profit Margin %' = DIVIDE ( [Total Profit], [Total Sales] )
+		formatString: 0.0%
+		lineageTag: 018c0a28-2854-4bdc-b014-b8d659b05150
+
+	measure 'Orders per Customer' = DIVIDE ( [Total Orders], [Total Customers] )
+		formatString: 0.00
+		lineageTag: 92bb46c4-2426-4c92-971d-1f7b3f60fb53
+
+	measure 'Total Revenue' = [Total Sales]
+		formatString: """₹""#,##0"""
+		lineageTag: ce60b842-0983-43ca-8a3d-5e20dca219ac
+
+	measure 'Sales (Lakh)' = DIVIDE ( [Total Sales], 100000 )
+		formatString: """₹""0.0""L"""
+		lineageTag: cc46de64-78fc-4264-91d0-8f1052055f5d
+
+	measure 'Last Order Date' = MAX ( fact_orders[OrderDate] )
+		lineageTag: 8bd1ba13-dd4e-4210-b925-f2c4be9be33c
+
+	measure 'Current Month Start' =
+			VAR _d = [Last Order Date]
+			RETURN DATE ( YEAR ( _d ), MONTH ( _d ), 1 )
+		lineageTag: d3d550bc-f314-4737-b6ff-e65ba2913431
+
+	measure 'Sales CM' =
+			VAR _m = [Current Month Start]
+			RETURN CALCULATE ( [Total Sales], REMOVEFILTERS ( dim_date ), dim_date[MonthStart] = _m )
+		formatString: """₹""#,##0"""
+		lineageTag: 42c1c5ea-a8a9-45a9-8376-8e6fdefa8688
+
+	measure 'Sales LM' =
+			VAR _m = EDATE ( [Current Month Start], -1 )
+			RETURN CALCULATE ( [Total Sales], REMOVEFILTERS ( dim_date ), dim_date[MonthStart] = _m )
+		formatString: """₹""#,##0"""
+		lineageTag: c46348be-4b78-4342-b720-e54845e500d7
+
+	measure 'Sales MoM %' = DIVIDE ( [Sales CM] - [Sales LM], [Sales LM] )
+		formatString: 0.0%
+		lineageTag: f6745185-c328-424d-9e32-242cb82c3635
+
+	measure 'Profit CM' =
+			VAR _m = [Current Month Start]
+			RETURN CALCULATE ( [Total Profit], REMOVEFILTERS ( dim_date ), dim_date[MonthStart] = _m )
+		formatString: """₹""#,##0"""
+		lineageTag: 4e5053d6-dc88-4c29-90c6-19acdf2e501c
+
+	measure 'Profit LM' =
+			VAR _m = EDATE ( [Current Month Start], -1 )
+			RETURN CALCULATE ( [Total Profit], REMOVEFILTERS ( dim_date ), dim_date[MonthStart] = _m )
+		formatString: """₹""#,##0"""
+		lineageTag: ab558e73-4b4e-4092-8ce8-9bd1ed8a989c
+
+	measure 'Profit MoM %' = DIVIDE ( [Profit CM] - [Profit LM], [Profit LM] )
+		formatString: 0.0%
+		lineageTag: ff3bddae-52cb-4d52-b428-69f2831d7a23
+
+	measure 'Orders CM' =
+			VAR _m = [Current Month Start]
+			RETURN CALCULATE ( [Total Orders], REMOVEFILTERS ( dim_date ), dim_date[MonthStart] = _m )
+		lineageTag: c3c9458f-5390-46db-8e1c-96688d18f87a
+
+	measure 'Orders LM' =
+			VAR _m = EDATE ( [Current Month Start], -1 )
+			RETURN CALCULATE ( [Total Orders], REMOVEFILTERS ( dim_date ), dim_date[MonthStart] = _m )
+		lineageTag: 20d46467-69ce-44ad-bd57-559a42d60056
+
+	measure 'Orders MoM %' = DIVIDE ( [Orders CM] - [Orders LM], [Orders LM] )
+		formatString: 0.0%
+		lineageTag: 486164cc-fa5f-414c-b1da-cbef82129321
+
+	measure 'Customers CM' =
+			VAR _m = [Current Month Start]
+			RETURN CALCULATE ( [Total Customers], REMOVEFILTERS ( dim_date ), dim_date[MonthStart] = _m )
+		lineageTag: 7edec189-10d1-48f2-8eaa-2039b667a928
+
+	measure 'Customers LM' =
+			VAR _m = EDATE ( [Current Month Start], -1 )
+			RETURN CALCULATE ( [Total Customers], REMOVEFILTERS ( dim_date ), dim_date[MonthStart] = _m )
+		lineageTag: 93aa8c12-c95d-4e2d-8b40-001f16d717bc
+
+	measure 'Customers MoM %' = DIVIDE ( [Customers CM] - [Customers LM], [Customers LM] )
+		formatString: 0.0%
+		lineageTag: eba9f809-e059-485b-ab86-29ec20ecc534
+
+	measure 'AOV CM' = DIVIDE ( [Sales CM], [Orders CM] )
+		formatString: """₹""#,##0"""
+		lineageTag: 3a76f3d1-f46f-4d6b-aef3-36f7e58a1dd0
+
+	measure 'AOV LM' = DIVIDE ( [Sales LM], [Orders LM] )
+		formatString: """₹""#,##0"""
+		lineageTag: 3c9e5579-930c-48f3-80b8-b2a8cb3bbc67
+
+	measure 'AOV MoM %' = DIVIDE ( [AOV CM] - [AOV LM], [AOV LM] )
+		formatString: 0.0%
+		lineageTag: bc836711-c2ca-42af-9137-363fd04afb39
+
+	measure 'Sales MoM Label' =
+			VAR _v = [Sales MoM %]
+			RETURN IF ( ISBLANK ( _v ), "-", IF ( _v >= 0, "▲ ", "▼ " ) & FORMAT ( ABS ( _v ), "0.0%" ) & " vs. last month" )
+		lineageTag: 19f36635-4960-4332-98e1-c4c72496cc7b
+
+	measure 'Profit MoM Label' =
+			VAR _v = [Profit MoM %]
+			RETURN IF ( ISBLANK ( _v ), "-", IF ( _v >= 0, "▲ ", "▼ " ) & FORMAT ( ABS ( _v ), "0.0%" ) & " vs. last month" )
+		lineageTag: 284d4a56-2182-44ad-bc2c-399b5ca66e45
+
+	measure 'Orders MoM Label' =
+			VAR _v = [Orders MoM %]
+			RETURN IF ( ISBLANK ( _v ), "-", IF ( _v >= 0, "▲ ", "▼ " ) & FORMAT ( ABS ( _v ), "0.0%" ) & " vs. last month" )
+		lineageTag: 9e20a2d7-9987-45b7-8fd9-ac0542606c22
+
+	measure 'Customers MoM Label' =
+			VAR _v = [Customers MoM %]
+			RETURN IF ( ISBLANK ( _v ), "-", IF ( _v >= 0, "▲ ", "▼ " ) & FORMAT ( ABS ( _v ), "0.0%" ) & " vs. last month" )
+		lineageTag: 44a7d284-7775-4583-a533-c2eac2cc50b6
+
+	measure 'AOV MoM Label' =
+			VAR _v = [AOV MoM %]
+			RETURN IF ( ISBLANK ( _v ), "-", IF ( _v >= 0, "▲ ", "▼ " ) & FORMAT ( ABS ( _v ), "0.0%" ) & " vs. last month" )
+		lineageTag: 7df201ad-b542-4033-a57e-caea65c26261
+
+	measure 'MoM Color' = IF ( [Sales MoM %] >= 0, "#2ECC71", "#E74C3C" )
+		lineageTag: 6255577c-72a6-4b8f-9b7e-bb600b12a54e
+
+	measure 'Sales YTD' = TOTALYTD ( [Total Sales], dim_date[Date] )
+		formatString: """₹""#,##0"""
+		lineageTag: 90a4bb8c-dae7-4d90-8c11-c393d94a99dd
+
+	measure 'Profit YTD' = TOTALYTD ( [Total Profit], dim_date[Date] )
+		formatString: """₹""#,##0"""
+		lineageTag: 1db2a7fc-88f9-4e62-82cb-4f8008b8562b
+
+	measure 'Avg Monthly Sales' = AVERAGEX ( VALUES ( dim_date[MonthStart] ), [Total Sales] )
+		formatString: """₹""#,##0"""
+		lineageTag: cb0b709e-0a03-4d98-833f-4fbaac67cdd9
+
+	measure 'Best Month' =
+			VAR _t = TOPN ( 1, VALUES ( dim_date[MonthName] ), [Total Sales], DESC )
+			RETURN MAXX ( _t, dim_date[MonthName] )
+		lineageTag: 7887d52d-f44a-4bce-87c1-2ad6b7f16319
+
+	measure 'Best Month Sales' = MAXX ( VALUES ( dim_date[MonthStart] ), [Total Sales] )
+		formatString: """₹""#,##0"""
+		lineageTag: c47204eb-1246-4b03-9652-c3f4bf08e3f8
+
+	measure 'Best Quarter' =
+			VAR _t = TOPN ( 1, VALUES ( dim_date[Quarter] ), [Total Sales], DESC )
+			RETURN MAXX ( _t, dim_date[Quarter] )
+		lineageTag: a9723fd0-95f0-41aa-bced-41d8b61de0d7
+
+	measure 'Quarter Share %' = DIVIDE ( [Total Sales], CALCULATE ( [Total Sales], REMOVEFILTERS ( dim_date[Quarter] ) ) )
+		formatString: 0.0%
+		lineageTag: 8ee95f69-6609-4c31-be29-771d242dab1b
+
+	measure 'Category Share %' = DIVIDE ( [Total Sales], CALCULATE ( [Total Sales], REMOVEFILTERS ( dim_products[Category] ) ) )
+		formatString: 0.0%
+		lineageTag: 4aba3965-8501-4219-80bc-ac7d1fea1390
+
+	measure 'Category Profit Share %' = DIVIDE ( [Total Profit], CALCULATE ( [Total Profit], REMOVEFILTERS ( dim_products[Category] ) ) )
+		formatString: 0.0%
+		lineageTag: 3ab2f117-37fe-4fe6-a81a-56b7f5ca06fd
+
+	measure 'Electronics Sales' = CALCULATE ( [Total Sales], dim_products[Category] = "Electronics" )
+		formatString: """₹""#,##0"""
+		lineageTag: e8112d96-66ff-4c91-9af1-139463bf38d2
+
+	measure 'Furniture Sales' = CALCULATE ( [Total Sales], dim_products[Category] = "Furniture" )
+		formatString: """₹""#,##0"""
+		lineageTag: 81e963b1-82d5-4236-9ab3-16ad40f92c81
+
+	measure 'Clothing Sales' = CALCULATE ( [Total Sales], dim_products[Category] = "Clothing" )
+		formatString: """₹""#,##0"""
+		lineageTag: 6c19212d-cae0-4e3e-9cb1-7ae8f959b46d
+
+	measure 'Best Category' =
+			VAR _t = TOPN ( 1, VALUES ( dim_products[Category] ), [Total Sales], DESC )
+			RETURN MAXX ( _t, dim_products[Category] )
+		lineageTag: 80b43fc4-923e-47bc-ad17-f5b325bdde90
+
+	measure 'Best Category Sales' = MAXX ( VALUES ( dim_products[Category] ), [Total Sales] )
+		formatString: """₹""#,##0"""
+		lineageTag: 1a1c1274-2486-47de-b5ac-f301a391b141
+
+	measure 'Best Category Share %' = DIVIDE ( [Best Category Sales], [Total Sales] )
+		formatString: 0.0%
+		lineageTag: b389d83b-48cc-40a0-8376-15f7b7064891
+
+	measure 'Highest Margin Category' =
+			VAR _t = TOPN ( 1, VALUES ( dim_products[Category] ), [Profit Margin %], DESC )
+			RETURN MAXX ( _t, dim_products[Category] )
+		lineageTag: 257ab31a-c8f0-4cd3-bfb3-de3136de2d79
+
+	measure 'Highest Margin %' = MAXX ( VALUES ( dim_products[Category] ), [Profit Margin %] )
+		formatString: 0.0%
+		lineageTag: 5a071977-4db0-492e-af07-c31f6acc46cb
+
+	measure 'State Share %' = DIVIDE ( [Total Sales], CALCULATE ( [Total Sales], REMOVEFILTERS ( dim_location[State] ), REMOVEFILTERS ( dim_location[City] ), REMOVEFILTERS ( dim_location[Region] ) ) )
+		formatString: 0.0%
+		lineageTag: 80776062-12a5-4577-b7f7-b61198654426
+
+	measure 'City Share %' = DIVIDE ( [Total Sales], CALCULATE ( [Total Sales], REMOVEFILTERS ( dim_location ) ) )
+		formatString: 0.0%
+		lineageTag: 9a3e2d8b-7476-458e-b17d-4ec9a712a159
+
+	measure 'Region Share %' = DIVIDE ( [Total Sales], CALCULATE ( [Total Sales], REMOVEFILTERS ( dim_location[Region] ) ) )
+		formatString: 0.0%
+		lineageTag: 09ff5228-37ce-4dd2-9516-4572cb1d8569
+
+	measure 'State Rank' = RANKX ( ALLSELECTED ( dim_location[State] ), [Total Sales], , DESC, DENSE )
+		formatString: #,##0
+		lineageTag: f1065262-a5aa-4b4b-b272-373bf38869f9
+
+	measure 'City Rank' = RANKX ( ALLSELECTED ( dim_location[City] ), [Total Sales], , DESC, DENSE )
+		formatString: #,##0
+		lineageTag: 76a16e55-bbc1-465c-8f6f-4b1686652e08
+
+	measure 'Top State' =
+			VAR _t = TOPN ( 1, VALUES ( dim_location[State] ), [Total Sales], DESC )
+			RETURN MAXX ( _t, dim_location[State] )
+		lineageTag: 92c39cfa-3df1-4ddb-b41d-5f7a38be448c
+
+	measure 'Top State Sales' = MAXX ( VALUES ( dim_location[State] ), [Total Sales] )
+		formatString: """₹""#,##0"""
+		lineageTag: f538c83d-7540-4a99-85df-e01c281c6840
+
+	measure 'Top State Share %' = DIVIDE ( [Top State Sales], [Total Sales] )
+		formatString: 0.0%
+		lineageTag: 88784524-dbae-4898-817d-374ce7307eca
+
+	measure 'Top City' =
+			VAR _t = TOPN ( 1, VALUES ( dim_location[City] ), [Total Sales], DESC )
+			RETURN MAXX ( _t, dim_location[City] )
+		lineageTag: 607b8691-3211-4409-bf6a-1bd70658f49f
+
+	measure 'Top 5 States Sales' = SUMX ( TOPN ( 5, ALLSELECTED ( dim_location[State] ), [Total Sales], DESC ), [Total Sales] )
+		formatString: """₹""#,##0"""
+		lineageTag: 74f03890-b643-40c1-a40a-b7f58791ecdd
+
+	measure 'Top 5 States Share %' = DIVIDE ( [Top 5 States Sales], CALCULATE ( [Total Sales], ALLSELECTED ( dim_location ) ) )
+		formatString: 0.0%
+		lineageTag: b85c8b56-03ea-49a7-8cb5-ada56d6ee804
+
+	measure 'Active States' = CALCULATE ( DISTINCTCOUNT ( dim_location[State] ), fact_orders )
+		formatString: #,##0
+		lineageTag: 36e0c08c-c3a5-4c3d-90c6-155043513ef3
+
+	measure 'Delivered Orders' = CALCULATE ( [Total Orders], fact_orders[Status] = "Delivered" )
+		formatString: #,##0
+		lineageTag: 250ecfc4-e25b-4333-925e-56d62456104e
+
+	measure 'Shipped Orders' = CALCULATE ( [Total Orders], fact_orders[Status] = "Shipped" )
+		formatString: #,##0
+		lineageTag: 1582e761-88af-4349-ab6c-b366aa81f2ea
+
+	measure 'Cancelled Orders' = CALCULATE ( [Total Orders], fact_orders[Status] = "Cancelled" )
+		formatString: #,##0
+		lineageTag: a8f9c4e2-34f6-46ae-b88b-e376b0a600a5
+
+	measure 'Order Status %' = DIVIDE ( [Total Orders], CALCULATE ( [Total Orders], REMOVEFILTERS ( fact_orders[Status] ) ) )
+		formatString: 0.0%
+		lineageTag: d44c29ff-3375-42d5-a784-acec30e4c5bd
+
+	measure 'Delivered %' = DIVIDE ( [Delivered Orders], [Total Orders] )
+		formatString: 0.0%
+		lineageTag: 5ec2ad60-685e-45ef-880a-24e26cd2e4ec
+
+	measure 'Shipped %' = DIVIDE ( [Shipped Orders], [Total Orders] )
+		formatString: 0.0%
+		lineageTag: be290b10-ea60-4245-92fc-91505dc19e22
+
+	measure 'Cancelled %' = DIVIDE ( [Cancelled Orders], [Total Orders] )
+		formatString: 0.0%
+		lineageTag: b8070125-7e18-434e-b283-d8c77787ee38
+
+	measure 'New Customers' = CALCULATE ( [Total Customers], dim_customers[Segment] = "New" )
+		formatString: #,##0
+		lineageTag: 717c7c98-a44d-49eb-bfcf-f033b813b01f
+
+	measure 'Returning Customers' = CALCULATE ( [Total Customers], dim_customers[Segment] = "Returning" )
+		formatString: #,##0
+		lineageTag: 43153a30-3e10-4833-a645-62c1cffa30d8
+
+	measure 'VIP Customers' = CALCULATE ( [Total Customers], dim_customers[Segment] = "VIP" )
+		formatString: #,##0
+		lineageTag: 6f812bca-58cb-480b-9daf-4983b19db7b4
+
+	measure 'Segment Share %' = DIVIDE ( [Total Customers], CALCULATE ( [Total Customers], REMOVEFILTERS ( dim_customers[Segment] ) ) )
+		formatString: 0.0%
+		lineageTag: a4fdae7a-89bb-4e2e-a6ba-e708a91a3ee2
+
+	measure 'Repeat Customers' = COUNTROWS ( FILTER ( VALUES ( fact_orders[CustomerID] ), CALCULATE ( [Total Orders] ) > 1 ) )
+		formatString: #,##0
+		lineageTag: afed287d-eab9-4715-b4be-814c7374b7e4
+
+	measure 'Customer Rank' = RANKX ( ALLSELECTED ( dim_customers[CustomerID] ), [Total Sales], , DESC, DENSE )
+		formatString: #,##0
+		lineageTag: 637470a5-1816-4d1f-8fd2-f2683fdec452
+
+	measure 'Top 10 Customers Sales' = SUMX ( TOPN ( 10, ALLSELECTED ( dim_customers[CustomerID] ), [Total Sales], DESC ), [Total Sales] )
+		formatString: """₹""#,##0"""
+		lineageTag: 2c53913d-1ec1-4e2a-8a7f-8c5d6ee9a386
+
+	measure 'Top 10 Customers Share %' = DIVIDE ( [Top 10 Customers Sales], CALCULATE ( [Total Sales], ALLSELECTED ( dim_customers ) ) )
+		formatString: 0.0%
+		lineageTag: 9e25785a-8ea9-4e70-9719-d86fab14e648
+
+	measure 'Product Rank by Sales' = RANKX ( ALLSELECTED ( dim_products[ProductName] ), [Total Sales], , DESC, DENSE )
+		lineageTag: 55bb5c71-3eae-4470-86c8-cc12fb9f0751
+
+	measure 'Product Rank by Profit' = RANKX ( ALLSELECTED ( dim_products[ProductName] ), [Total Profit], , DESC, DENSE )
+		lineageTag: fad40004-de8d-4b89-bcad-62c0df67df21
+
+	measure 'Product Share %' = DIVIDE ( [Total Sales], CALCULATE ( [Total Sales], REMOVEFILTERS ( dim_products ) ) )
+		formatString: 0.0%
+		lineageTag: 74713d89-1ae7-4ce9-a91a-11647c612965
+
+	measure 'Top Product' =
+			VAR _t = TOPN ( 1, VALUES ( dim_products[ProductName] ), [Total Sales], DESC )
+			RETURN MAXX ( _t, dim_products[ProductName] )
+		lineageTag: 3edac2e2-46b0-4e04-9436-b1f7d5202a21
+
+	measure 'Top Product by Profit' =
+			VAR _t = TOPN ( 1, VALUES ( dim_products[ProductName] ), [Total Profit], DESC )
+			RETURN MAXX ( _t, dim_products[ProductName] )
+		lineageTag: bb876e9d-21c4-419c-bb30-140254ed2e35
+
+	measure 'Top 10 Products Share %' =
+			DIVIDE (
+			    SUMX ( TOPN ( 10, ALLSELECTED ( dim_products[ProductName] ), [Total Sales], DESC ), [Total Sales] ),
+			    CALCULATE ( [Total Sales], ALLSELECTED ( dim_products ) )
+			)
+		formatString: 0.0%
+		lineageTag: 881a05df-5e6f-4fd7-b7ce-7276e0c233de
+
+	measure 'Payment Amount' = SUM ( fact_payments[Amount] )
+		formatString: """₹""#,##0"""
+		lineageTag: e4f568e9-734a-4dc9-8bc5-eba6553c13d8
+
+	measure 'Total Transactions' = COUNTROWS ( fact_payments )
+		formatString: #,##0
+		lineageTag: df067131-f1ef-4f88-a3cb-1ec8c9de17b6
+
+	measure 'Avg Transaction Value' = DIVIDE ( [Payment Amount], [Total Transactions] )
+		formatString: """₹""#,##0"""
+		lineageTag: 483cf7d4-7bc7-4d01-8ad4-18471a160931
+
+	measure 'Transactions per Order' = DIVIDE ( [Total Transactions], [Total Orders] )
+		formatString: 0.00
+		lineageTag: 559c4c1a-c144-4116-a0f9-9a9f60d34d1f
+
+	measure 'Payment Share %' = DIVIDE ( [Payment Amount], CALCULATE ( [Payment Amount], REMOVEFILTERS ( fact_payments[PaymentMode] ) ) )
+		formatString: 0.0%
+		lineageTag: 7277c0dc-e536-429e-9881-85a3ca49a9cc
+
+	measure 'Transaction Share %' = DIVIDE ( [Total Transactions], CALCULATE ( [Total Transactions], REMOVEFILTERS ( fact_payments[PaymentMode] ) ) )
+		formatString: 0.0%
+		lineageTag: 54aa081f-c816-49fe-9664-53cb3161195d
+
+	measure 'UPI Amount' = CALCULATE ( [Payment Amount], fact_payments[PaymentMode] = "UPI" )
+		formatString: """₹""#,##0"""
+		lineageTag: bc221ca0-0d9c-4ca2-a2b0-d28bb2eacbee
+
+	measure 'EMI Amount' = CALCULATE ( [Payment Amount], fact_payments[PaymentMode] = "EMI" )
+		formatString: """₹""#,##0"""
+		lineageTag: 99d2dc9b-8565-44a4-9816-6d9f1cc7413e
+
+	measure 'Cards Amount' = CALCULATE ( [Payment Amount], fact_payments[PaymentMode] = "Cards" )
+		formatString: """₹""#,##0"""
+		lineageTag: 63020abd-480b-4f9b-a742-d2f10fe84053
+
+	measure 'Cash Amount' = CALCULATE ( [Payment Amount], fact_payments[PaymentMode] = "Cash" )
+		formatString: """₹""#,##0"""
+		lineageTag: 7fc0ae9e-8376-4867-b488-2df0b1b14f15
+
+	measure 'UPI Share %' = DIVIDE ( [UPI Amount], [Payment Amount] )
+		formatString: 0.0%
+		lineageTag: ffd8f523-dedf-4b57-8450-3042d23d1c1d
+
+	measure 'Top Payment Mode' =
+			VAR _t = TOPN ( 1, VALUES ( fact_payments[PaymentMode] ), [Payment Amount], DESC )
+			RETURN MAXX ( _t, fact_payments[PaymentMode] )
+		lineageTag: c663df97-68fd-4b98-bf64-9eca1127fc06
+
+	measure 'Top Payment Mode Share %' = DIVIDE ( MAXX ( VALUES ( fact_payments[PaymentMode] ), [Payment Amount] ), [Payment Amount] )
+		formatString: 0.0%
+		lineageTag: dd4975df-f2ed-4786-9d4f-473523548733
+
+	measure 'Most Used Mode (by count)' =
+			VAR _t = TOPN ( 1, VALUES ( fact_payments[PaymentMode] ), [Total Transactions], DESC )
+			RETURN MAXX ( _t, fact_payments[PaymentMode] )
+		lineageTag: 9b77a985-a746-4a49-8507-a98f5ac44a95
+
+	measure 'Payment vs Sales Difference' = [Payment Amount] - [Total Sales]
+		formatString: """₹""#,##0"""
+		lineageTag: 4e0cf831-c981-4e11-843d-5c5385e95d50
+
+	measure 'Insight 1 - Category' = [Best Category] & " is the top-performing category with " & FORMAT ( [Best Category Share %], "0%" ) & " of total sales."
+		lineageTag: d7481859-b3d0-4242-9726-e73661f92335
+
+	measure 'Insight 2 - State' = [Top State] & " contributes the highest sales (" & FORMAT ( [Top State Share %], "0.0%" ) & ") among all states."
+		lineageTag: f17de56f-16f1-4581-91dc-d2daa07eeb01
+
+	measure 'Insight 3 - Payment' = [Top Payment Mode] & " is the most used payment mode (" & FORMAT ( [Top Payment Mode Share %], "0%" ) & ")."
+		lineageTag: 4eb7694c-3c7b-4402-97e3-dd76f3edf273
+
+	measure 'Insight 4 - Quarter' = [Best Quarter] & " shows the highest sales and profit performance."
+		lineageTag: aab5d4b6-cdf2-44c4-b59b-373c82fa8b66
+
+	measure 'Insight 5 - Customers' = "Top 10 customers contribute " & FORMAT ( [Top 10 Customers Share %], "0%" ) & " of total revenue."
+		formatString: #,##0
+		lineageTag: 351e8ee6-1b72-452c-8dbe-2a88d7128223
+
+	measure 'Insight 6 - Margin' = [Highest Margin Category] & " has the highest profit margin (" & FORMAT ( [Highest Margin %], "0.0%" ) & ")."
+		lineageTag: fc6f0bca-b207-4804-87fe-233dd41572f8
+
+	measure 'Best Category Card' =
+			[Best Category]
+			Top State Card     = [Top State]
+			Top Payment Card   = [Top Payment Mode]
+		lineageTag: efe73a0a-a6e3-44b6-8e87-b6b170503234
+
+	measure 'Sales Label' = "₹ " & FORMAT ( [Total Sales], "#,##0" )
+		lineageTag: 1dfbf1a9-ed17-4732-8573-8d7222b82b96
+
+	measure 'Selected Category Title' = "Sales Overview - " & IF ( ISFILTERED ( dim_products[Category] ), SELECTEDVALUE ( dim_products[Category], "Multiple" ), "All Categories" )
+		lineageTag: 764a1acb-9083-4c7d-8256-2d9f1a9595f7
+
+	measure 'Product Categories' = DISTINCTCOUNT ( dim_products[Category] )
+		formatString: #,##0
+		lineageTag: 300303cf-99c6-4da7-9394-1937cde1e825
+
+	measure 'Data Range Label' = FORMAT ( MIN ( dim_date[Date] ), "dd mmm yyyy" ) & " - " & FORMAT ( MAX ( dim_date[Date] ), "dd mmm yyyy" )
+		lineageTag: 2ecaea9d-e103-4346-a79f-fa67105df6d2
+
+	measure 'UPI Share Label' = FORMAT ( DIVIDE ( [UPI Amount], [Payment Amount] ), "0.0%" ) & " of total amount"
+		lineageTag: 1be4f95d-1750-42c5-b2fc-5ba5a0b55d45
+
+	measure 'EMI Share Label' = FORMAT ( DIVIDE ( [EMI Amount], [Payment Amount] ), "0.0%" ) & " of total amount"
+		lineageTag: e036c798-30e5-40a3-9a28-b0375ca72e21
+
+	measure 'Cards Share Label' = FORMAT ( DIVIDE ( [Cards Amount], [Payment Amount] ), "0.0%" ) & " of total amount"
+		lineageTag: 50666c55-4c0b-451e-bcb0-98fc1b79aee4
+
+	measure 'Cash Share Label' = FORMAT ( DIVIDE ( [Cash Amount], [Payment Amount] ), "0.0%" ) & " of total amount"
+		lineageTag: bc34522b-46fa-42eb-9c03-47dbe16c19ac
+
+	column Column
+		dataType: string
+		isHidden
+		lineageTag: 54521024-7497-4143-aeff-ace9c6ba9305
+		summarizeBy: none
+		sourceColumn: Column
+
+	partition _Measures = m
+		mode: import
+		source =
+				let
+					Source = #table(type table [Column = text], {})
+				in
+					Source
+

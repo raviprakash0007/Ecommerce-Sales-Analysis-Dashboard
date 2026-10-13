@@ -1,0 +1,314 @@
+Total Sales = SUM ( fact_orders[Sales] )
+
+Total Profit = SUM ( fact_orders[Profit] )
+
+Total Orders = DISTINCTCOUNT ( fact_orders[OrderID] )
+
+Total Customers = DISTINCTCOUNT ( fact_orders[CustomerID] )
+
+Total Quantity = SUM ( fact_orders[Qty] )
+
+Avg Order Value = DIVIDE ( [Total Sales], [Total Orders] )
+
+Profit Margin % = DIVIDE ( [Total Profit], [Total Sales] )
+
+Orders per Customer = DIVIDE ( [Total Orders], [Total Customers] )
+
+Total Revenue = [Total Sales]
+
+Sales (Lakh) = DIVIDE ( [Total Sales], 100000 )
+
+Last Order Date = MAX ( fact_orders[OrderDate] )
+
+Current Month Start =
+VAR _d = [Last Order Date]
+RETURN DATE ( YEAR ( _d ), MONTH ( _d ), 1 )
+
+Sales CM =
+VAR _m = [Current Month Start]
+RETURN CALCULATE ( [Total Sales], REMOVEFILTERS ( dim_date ), dim_date[MonthStart] = _m )
+
+Sales LM =
+VAR _m = EDATE ( [Current Month Start], -1 )
+RETURN CALCULATE ( [Total Sales], REMOVEFILTERS ( dim_date ), dim_date[MonthStart] = _m )
+
+Sales MoM % = DIVIDE ( [Sales CM] - [Sales LM], [Sales LM] )
+
+Profit CM =
+VAR _m = [Current Month Start]
+RETURN CALCULATE ( [Total Profit], REMOVEFILTERS ( dim_date ), dim_date[MonthStart] = _m )
+
+Profit LM =
+VAR _m = EDATE ( [Current Month Start], -1 )
+RETURN CALCULATE ( [Total Profit], REMOVEFILTERS ( dim_date ), dim_date[MonthStart] = _m )
+
+Profit MoM % = DIVIDE ( [Profit CM] - [Profit LM], [Profit LM] )
+
+Orders CM =
+VAR _m = [Current Month Start]
+RETURN CALCULATE ( [Total Orders], REMOVEFILTERS ( dim_date ), dim_date[MonthStart] = _m )
+
+Orders LM =
+VAR _m = EDATE ( [Current Month Start], -1 )
+RETURN CALCULATE ( [Total Orders], REMOVEFILTERS ( dim_date ), dim_date[MonthStart] = _m )
+
+Orders MoM % = DIVIDE ( [Orders CM] - [Orders LM], [Orders LM] )
+
+Customers CM =
+VAR _m = [Current Month Start]
+RETURN CALCULATE ( [Total Customers], REMOVEFILTERS ( dim_date ), dim_date[MonthStart] = _m )
+
+Customers LM =
+VAR _m = EDATE ( [Current Month Start], -1 )
+RETURN CALCULATE ( [Total Customers], REMOVEFILTERS ( dim_date ), dim_date[MonthStart] = _m )
+
+Customers MoM % = DIVIDE ( [Customers CM] - [Customers LM], [Customers LM] )
+
+AOV CM = DIVIDE ( [Sales CM], [Orders CM] )
+
+AOV LM = DIVIDE ( [Sales LM], [Orders LM] )
+
+AOV MoM % = DIVIDE ( [AOV CM] - [AOV LM], [AOV LM] )
+
+Sales MoM Label =
+VAR _v = [Sales MoM %]
+RETURN IF ( ISBLANK ( _v ), "-", IF ( _v >= 0, "▲ ", "▼ " ) & FORMAT ( ABS ( _v ), "0.0%" ) & " vs. last month" )
+
+Profit MoM Label =
+VAR _v = [Profit MoM %]
+RETURN IF ( ISBLANK ( _v ), "-", IF ( _v >= 0, "▲ ", "▼ " ) & FORMAT ( ABS ( _v ), "0.0%" ) & " vs. last month" )
+
+Orders MoM Label =
+VAR _v = [Orders MoM %]
+RETURN IF ( ISBLANK ( _v ), "-", IF ( _v >= 0, "▲ ", "▼ " ) & FORMAT ( ABS ( _v ), "0.0%" ) & " vs. last month" )
+
+Customers MoM Label =
+VAR _v = [Customers MoM %]
+RETURN IF ( ISBLANK ( _v ), "-", IF ( _v >= 0, "▲ ", "▼ " ) & FORMAT ( ABS ( _v ), "0.0%" ) & " vs. last month" )
+
+AOV MoM Label =
+VAR _v = [AOV MoM %]
+RETURN IF ( ISBLANK ( _v ), "-", IF ( _v >= 0, "▲ ", "▼ " ) & FORMAT ( ABS ( _v ), "0.0%" ) & " vs. last month" )
+
+MoM Color =
+IF ( [Sales MoM %] >= 0, "#2ECC71", "#E74C3C" )
+
+Sales YTD = TOTALYTD ( [Total Sales], dim_date[Date] )
+
+Profit YTD = TOTALYTD ( [Total Profit], dim_date[Date] )
+
+Avg Monthly Sales =
+AVERAGEX ( VALUES ( dim_date[MonthStart] ), [Total Sales] )
+
+Best Month =
+VAR _t = TOPN ( 1, VALUES ( dim_date[MonthName] ), [Total Sales], DESC )
+RETURN MAXX ( _t, dim_date[MonthName] )
+
+Best Month Sales =
+MAXX ( VALUES ( dim_date[MonthStart] ), [Total Sales] )
+
+Best Quarter =
+VAR _t = TOPN ( 1, VALUES ( dim_date[Quarter] ), [Total Sales], DESC )
+RETURN MAXX ( _t, dim_date[Quarter] )
+
+Quarter Share % =
+DIVIDE ( [Total Sales], CALCULATE ( [Total Sales], REMOVEFILTERS ( dim_date[Quarter] ) ) )
+
+Category Share % =
+DIVIDE ( [Total Sales], CALCULATE ( [Total Sales], REMOVEFILTERS ( dim_products[Category] ) ) )
+
+Category Profit Share % =
+DIVIDE ( [Total Profit], CALCULATE ( [Total Profit], REMOVEFILTERS ( dim_products[Category] ) ) )
+
+Electronics Sales = CALCULATE ( [Total Sales], dim_products[Category] = "Electronics" )
+
+Furniture Sales   = CALCULATE ( [Total Sales], dim_products[Category] = "Furniture" )
+
+Clothing Sales    = CALCULATE ( [Total Sales], dim_products[Category] = "Clothing" )
+
+Best Category =
+VAR _t = TOPN ( 1, VALUES ( dim_products[Category] ), [Total Sales], DESC )
+RETURN MAXX ( _t, dim_products[Category] )
+
+Best Category Sales =
+MAXX ( VALUES ( dim_products[Category] ), [Total Sales] )
+
+Best Category Share % = DIVIDE ( [Best Category Sales], [Total Sales] )
+
+Highest Margin Category =
+VAR _t = TOPN ( 1, VALUES ( dim_products[Category] ), [Profit Margin %], DESC )
+RETURN MAXX ( _t, dim_products[Category] )
+
+Highest Margin % =
+MAXX ( VALUES ( dim_products[Category] ), [Profit Margin %] )
+
+State Share % =
+DIVIDE ( [Total Sales], CALCULATE ( [Total Sales], REMOVEFILTERS ( dim_location[State] ), REMOVEFILTERS ( dim_location[City] ), REMOVEFILTERS ( dim_location[Region] ) ) )
+
+City Share % =
+DIVIDE ( [Total Sales], CALCULATE ( [Total Sales], REMOVEFILTERS ( dim_location ) ) )
+
+Region Share % =
+DIVIDE ( [Total Sales], CALCULATE ( [Total Sales], REMOVEFILTERS ( dim_location[Region] ) ) )
+
+State Rank =
+RANKX ( ALLSELECTED ( dim_location[State] ), [Total Sales], , DESC, DENSE )
+
+City Rank =
+RANKX ( ALLSELECTED ( dim_location[City] ), [Total Sales], , DESC, DENSE )
+
+Top State =
+VAR _t = TOPN ( 1, VALUES ( dim_location[State] ), [Total Sales], DESC )
+RETURN MAXX ( _t, dim_location[State] )
+
+Top State Sales =
+MAXX ( VALUES ( dim_location[State] ), [Total Sales] )
+
+Top State Share % = DIVIDE ( [Top State Sales], [Total Sales] )
+
+Top City =
+VAR _t = TOPN ( 1, VALUES ( dim_location[City] ), [Total Sales], DESC )
+RETURN MAXX ( _t, dim_location[City] )
+
+Top 5 States Sales =
+SUMX ( TOPN ( 5, ALLSELECTED ( dim_location[State] ), [Total Sales], DESC ), [Total Sales] )
+
+Top 5 States Share % = DIVIDE ( [Top 5 States Sales], CALCULATE ( [Total Sales], ALLSELECTED ( dim_location ) ) )
+
+Active States = CALCULATE ( DISTINCTCOUNT ( dim_location[State] ), fact_orders )
+
+Delivered Orders = CALCULATE ( [Total Orders], fact_orders[Status] = "Delivered" )
+
+Shipped Orders   = CALCULATE ( [Total Orders], fact_orders[Status] = "Shipped" )
+
+Cancelled Orders = CALCULATE ( [Total Orders], fact_orders[Status] = "Cancelled" )
+
+Order Status % =
+DIVIDE ( [Total Orders], CALCULATE ( [Total Orders], REMOVEFILTERS ( fact_orders[Status] ) ) )
+
+Delivered % = DIVIDE ( [Delivered Orders], [Total Orders] )
+
+Shipped %   = DIVIDE ( [Shipped Orders], [Total Orders] )
+
+Cancelled % = DIVIDE ( [Cancelled Orders], [Total Orders] )
+
+New Customers       = CALCULATE ( [Total Customers], dim_customers[Segment] = "New" )
+
+Returning Customers = CALCULATE ( [Total Customers], dim_customers[Segment] = "Returning" )
+
+VIP Customers       = CALCULATE ( [Total Customers], dim_customers[Segment] = "VIP" )
+
+Segment Share % =
+DIVIDE ( [Total Customers], CALCULATE ( [Total Customers], REMOVEFILTERS ( dim_customers[Segment] ) ) )
+
+Repeat Customers =
+COUNTROWS ( FILTER ( VALUES ( fact_orders[CustomerID] ), CALCULATE ( [Total Orders] ) > 1 ) )
+
+Customer Rank =
+RANKX ( ALLSELECTED ( dim_customers[CustomerID] ), [Total Sales], , DESC, DENSE )
+
+Top 10 Customers Sales =
+SUMX ( TOPN ( 10, ALLSELECTED ( dim_customers[CustomerID] ), [Total Sales], DESC ), [Total Sales] )
+
+Top 10 Customers Share % =
+DIVIDE ( [Top 10 Customers Sales], CALCULATE ( [Total Sales], ALLSELECTED ( dim_customers ) ) )
+
+Product Rank by Sales =
+RANKX ( ALLSELECTED ( dim_products[ProductName] ), [Total Sales], , DESC, DENSE )
+
+Product Rank by Profit =
+RANKX ( ALLSELECTED ( dim_products[ProductName] ), [Total Profit], , DESC, DENSE )
+
+Product Share % =
+DIVIDE ( [Total Sales], CALCULATE ( [Total Sales], REMOVEFILTERS ( dim_products ) ) )
+
+Top Product =
+VAR _t = TOPN ( 1, VALUES ( dim_products[ProductName] ), [Total Sales], DESC )
+RETURN MAXX ( _t, dim_products[ProductName] )
+
+Top Product by Profit =
+VAR _t = TOPN ( 1, VALUES ( dim_products[ProductName] ), [Total Profit], DESC )
+RETURN MAXX ( _t, dim_products[ProductName] )
+
+Top 10 Products Share % =
+DIVIDE (
+    SUMX ( TOPN ( 10, ALLSELECTED ( dim_products[ProductName] ), [Total Sales], DESC ), [Total Sales] ),
+    CALCULATE ( [Total Sales], ALLSELECTED ( dim_products ) )
+)
+
+Payment Amount = SUM ( fact_payments[Amount] )
+
+Total Transactions = COUNTROWS ( fact_payments )
+
+Avg Transaction Value = DIVIDE ( [Payment Amount], [Total Transactions] )
+
+Transactions per Order = DIVIDE ( [Total Transactions], [Total Orders] )
+
+Payment Share % =
+DIVIDE ( [Payment Amount], CALCULATE ( [Payment Amount], REMOVEFILTERS ( fact_payments[PaymentMode] ) ) )
+
+Transaction Share % =
+DIVIDE ( [Total Transactions], CALCULATE ( [Total Transactions], REMOVEFILTERS ( fact_payments[PaymentMode] ) ) )
+
+UPI Amount   = CALCULATE ( [Payment Amount], fact_payments[PaymentMode] = "UPI" )
+
+EMI Amount   = CALCULATE ( [Payment Amount], fact_payments[PaymentMode] = "EMI" )
+
+Cards Amount = CALCULATE ( [Payment Amount], fact_payments[PaymentMode] = "Cards" )
+
+Cash Amount  = CALCULATE ( [Payment Amount], fact_payments[PaymentMode] = "Cash" )
+
+UPI Share % = DIVIDE ( [UPI Amount], [Payment Amount] )
+
+UPI Share Label = FORMAT ( DIVIDE ( [UPI Amount], [Payment Amount] ), "0.0%" ) & " of total amount"
+
+EMI Share Label = FORMAT ( DIVIDE ( [EMI Amount], [Payment Amount] ), "0.0%" ) & " of total amount"
+
+Cards Share Label = FORMAT ( DIVIDE ( [Cards Amount], [Payment Amount] ), "0.0%" ) & " of total amount"
+
+Cash Share Label = FORMAT ( DIVIDE ( [Cash Amount], [Payment Amount] ), "0.0%" ) & " of total amount"
+
+Top Payment Mode =
+VAR _t = TOPN ( 1, VALUES ( fact_payments[PaymentMode] ), [Payment Amount], DESC )
+RETURN MAXX ( _t, fact_payments[PaymentMode] )
+
+Top Payment Mode Share % =
+DIVIDE ( MAXX ( VALUES ( fact_payments[PaymentMode] ), [Payment Amount] ), [Payment Amount] )
+
+Most Used Mode (by count) =
+VAR _t = TOPN ( 1, VALUES ( fact_payments[PaymentMode] ), [Total Transactions], DESC )
+RETURN MAXX ( _t, fact_payments[PaymentMode] )
+
+Payment vs Sales Difference = [Payment Amount] - [Total Sales]
+
+Insight 1 - Category =
+[Best Category] & " is the top-performing category with " & FORMAT ( [Best Category Share %], "0%" ) & " of total sales."
+
+Insight 2 - State =
+[Top State] & " contributes the highest sales (" & FORMAT ( [Top State Share %], "0.0%" ) & ") among all states."
+
+Insight 3 - Payment =
+[Top Payment Mode] & " is the most used payment mode (" & FORMAT ( [Top Payment Mode Share %], "0%" ) & ")."
+
+Insight 4 - Quarter =
+[Best Quarter] & " shows the highest sales and profit performance."
+
+Insight 5 - Customers =
+"Top 10 customers contribute " & FORMAT ( [Top 10 Customers Share %], "0%" ) & " of total revenue."
+
+Insight 6 - Margin =
+[Highest Margin Category] & " has the highest profit margin (" & FORMAT ( [Highest Margin %], "0.0%" ) & ")."
+
+Best Category Card = [Best Category]
+Top State Card     = [Top State]
+Top Payment Card   = [Top Payment Mode]
+
+Sales Label = "₹ " & FORMAT ( [Total Sales], "#,##0" )
+
+Selected Category Title =
+"Sales Overview - " & IF ( ISFILTERED ( dim_products[Category] ), SELECTEDVALUE ( dim_products[Category], "Multiple" ), "All Categories" )
+
+Product Categories = DISTINCTCOUNT ( dim_products[Category] )
+
+Data Range Label =
+FORMAT ( MIN ( dim_date[Date] ), "dd mmm yyyy" ) & " - " & FORMAT ( MAX ( dim_date[Date] ), "dd mmm yyyy" )

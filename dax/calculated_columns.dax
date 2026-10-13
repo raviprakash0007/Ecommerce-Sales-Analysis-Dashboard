@@ -1,0 +1,131 @@
+dim_date =
+ADDCOLUMNS (
+    CALENDAR (
+        DATE ( YEAR ( MIN ( fact_orders[OrderDate] ) ), 1, 1 ),
+        DATE ( YEAR ( MAX ( fact_orders[OrderDate] ) ), 12, 31 )
+    ),
+    "Year",        YEAR ( [Date] ),
+    "MonthNum",    MONTH ( [Date] ),
+    "MonthName",   FORMAT ( [Date], "mmm" ),
+    "MonthStart",  DATE ( YEAR ( [Date] ), MONTH ( [Date] ), 1 ),
+    "YearMonth",   FORMAT ( [Date], "yyyy-mm" ),
+    "QuarterNum",  ROUNDUP ( MONTH ( [Date] ) / 3, 0 ),
+    "Quarter",     "Q" & ROUNDUP ( MONTH ( [Date] ) / 3, 0 ),
+    "WeekdayNum",  WEEKDAY ( [Date], 2 ),
+    "WeekdayName", FORMAT ( [Date], "ddd" )
+)
+
+fact_orders[Order Margin %] =
+DIVIDE ( fact_orders[Profit], fact_orders[Sales] )
+
+fact_orders[Realized Unit Price] =
+DIVIDE ( fact_orders[Sales], fact_orders[Qty] )
+
+fact_orders[Order Value Band] =
+SWITCH (
+    TRUE (),
+    fact_orders[Sales] < 2000,  "1. Under 2K",
+    fact_orders[Sales] < 5000,  "2. 2K - 5K",
+    fact_orders[Sales] < 10000, "3. 5K - 10K",
+    fact_orders[Sales] < 20000, "4. 10K - 20K",
+    "5. 20K and above"
+)
+
+fact_orders[Is Cancelled] =
+IF ( fact_orders[Status] = "Cancelled", 1, 0 )
+
+fact_orders[Order Month] =
+DATE ( YEAR ( fact_orders[OrderDate] ), MONTH ( fact_orders[OrderDate] ), 1 )
+
+fact_orders[Order Quarter] =
+"Q" & ROUNDUP ( MONTH ( fact_orders[OrderDate] ) / 3, 0 )
+
+dim_customers[Customer Sales] =
+CALCULATE ( SUM ( fact_orders[Sales] ) )
+
+dim_customers[Customer Profit] =
+CALCULATE ( SUM ( fact_orders[Profit] ) )
+
+dim_customers[Customer Orders] =
+CALCULATE ( COUNTROWS ( fact_orders ) )
+
+dim_customers[Customer Sales Rank] =
+RANKX ( dim_customers, dim_customers[Customer Sales], , DESC, DENSE )
+
+dim_customers[Top 10 Flag] =
+IF ( dim_customers[Customer Sales Rank] <= 10, "Top 10", "Others" )
+
+dim_customers[Buyer Type] =
+IF ( dim_customers[Customer Orders] > 1, "Repeat Buyer", "One-time Buyer" )
+
+dim_products[Product Sales] =
+CALCULATE ( SUM ( fact_orders[Sales] ) )
+
+dim_products[Product Profit] =
+CALCULATE ( SUM ( fact_orders[Profit] ) )
+
+dim_products[Product Qty] =
+CALCULATE ( SUM ( fact_orders[Qty] ) )
+
+dim_products[Sales Rank] =
+RANKX ( dim_products, dim_products[Product Sales], , DESC, DENSE )
+
+dim_products[Profit Rank] =
+RANKX ( dim_products, dim_products[Product Profit], , DESC, DENSE )
+
+dim_products[Top 10 Sales Flag] =
+IF ( dim_products[Sales Rank] <= 10, "Top 10", "Others" )
+
+dim_products[Top 5 Sales Flag] =
+IF ( dim_products[Sales Rank] <= 5, "Top 5", "Others" )
+
+dim_products[Top 5 Profit Flag] =
+IF ( dim_products[Profit Rank] <= 5, "Top 5", "Others" )
+
+dim_products[Price Band] =
+SWITCH (
+    TRUE (),
+    dim_products[UnitPrice] < 1500, "Budget",
+    dim_products[UnitPrice] < 5000, "Mid-range",
+    "Premium"
+)
+
+dim_location[City State] =
+dim_location[City] & ", " & dim_location[State]
+
+dim_location[State Sales] =
+CALCULATE ( SUM ( fact_orders[Sales] ), ALLEXCEPT ( dim_location, dim_location[State] ) )
+
+dim_location[State Sales Rank] =
+RANKX ( dim_location, dim_location[State Sales], , DESC, DENSE )
+
+dim_location[Top 5 State Flag] =
+IF ( dim_location[State Sales Rank] <= 5, "Top 5", "Others" )
+
+fact_payments[Order Date] =
+RELATED ( fact_orders[OrderDate] )
+
+fact_payments[Payment Month] =
+DATE ( YEAR ( fact_payments[Order Date] ), MONTH ( fact_payments[Order Date] ), 1 )
+
+fact_payments[Payment Month Name] =
+FORMAT ( fact_payments[Order Date], "mmm" )
+
+fact_payments[Payment Channel] =
+SWITCH (
+    fact_payments[PaymentMode],
+    "UPI",   "Digital",
+    "Cards", "Digital",
+    "EMI",   "Credit / Instalment",
+    "Cash",  "Offline",
+    "Other"
+)
+
+fact_payments[Ticket Size Band] =
+SWITCH (
+    TRUE (),
+    fact_payments[Amount] < 1000, "1. Under 1K",
+    fact_payments[Amount] < 3000, "2. 1K - 3K",
+    fact_payments[Amount] < 6000, "3. 3K - 6K",
+    "4. 6K and above"
+)

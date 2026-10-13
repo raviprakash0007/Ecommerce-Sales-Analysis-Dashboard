@@ -1,0 +1,41 @@
+ProductID,ProductName,Category,UnitPrice
+P001,iPhone 15,Electronics,8867
+P002,Laptop Dell,Electronics,7989
+P003,Headphones,Electronics,3428
+P004,Smart Watch,Electronics,2096
+P005,Samsung Galaxy S23,Electronics,14343
+P006,Tablet 10-inch,Electronics,10677
+P007,Smart TV 43-inch,Electronics,9635
+P008,Bluetooth Speaker,Electronics,14848
+P009,Wireless Earbuds,Electronics,13043
+P010,Gaming Console,Electronics,8109
+P011,Printer,Electronics,11902
+P012,Power Bank,Electronics,10267
+P013,Monitor 24-inch,Electronics,11187
+P014,Digital Camera,Electronics,9206
+P015,Home Theatre,Electronics,11657
+P016,Fitness Band,Electronics,10073
+P017,Sofa Set,Furniture,9765
+P018,Dining Table,Furniture,9444
+P019,Office Chair,Furniture,3280
+P020,King Size Bed,Furniture,5399
+P021,Wardrobe,Furniture,5142
+P022,Bookshelf,Furniture,6635
+P023,Coffee Table,Furniture,6283
+P024,TV Unit,Furniture,7915
+P025,Study Desk,Furniture,6388
+P026,Recliner Chair,Furniture,5227
+P027,Shoe Rack,Furniture,6565
+P028,Dressing Table,Furniture,6950
+P029,Bean Bag,Furniture,6241
+P030,Men's Jacket,Clothing,3273
+P031,Women's Dress,Clothing,2802
+P032,T-Shirt,Clothing,1110
+P033,Women's Kurta,Clothing,3165
+P034,Jeans,Clothing,2556
+P035,Formal Shirt,Clothing,3100
+P036,Hoodie,Clothing,3320
+P037,Saree,Clothing,2881
+P038,Track Pants,Clothing,3012
+P039,Winter Coat,Clothing,3681
+P040,Sports Shoes,Clothing,2298

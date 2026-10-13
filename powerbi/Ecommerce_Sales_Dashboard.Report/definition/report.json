@@ -1,0 +1,78 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/report/3.3.0/schema.json",
+  "themeCollection": {
+    "customTheme": {
+      "name": "dark_blue_theme.json",
+      "reportVersionAtImport": {
+        "visual": "2.13.0",
+        "report": "3.4.0",
+        "page": "2.3.1"
+      },
+      "type": "RegisteredResources"
+    }
+  },
+  "resourcePackages": [
+    {
+      "name": "RegisteredResources",
+      "type": "RegisteredResources",
+      "items": [
+        {
+          "name": "bg_category_analysis.png",
+          "path": "bg_category_analysis.png",
+          "type": "Image"
+        },
+        {
+          "name": "bg_cover.png",
+          "path": "bg_cover.png",
+          "type": "Image"
+        },
+        {
+          "name": "bg_customers_orders.png",
+          "path": "bg_customers_orders.png",
+          "type": "Image"
+        },
+        {
+          "name": "bg_insights.png",
+          "path": "bg_insights.png",
+          "type": "Image"
+        },
+        {
+          "name": "bg_location_analysis.png",
+          "path": "bg_location_analysis.png",
+          "type": "Image"
+        },
+        {
+          "name": "bg_overview.png",
+          "path": "bg_overview.png",
+          "type": "Image"
+        },
+        {
+          "name": "bg_payment_analysis.png",
+          "path": "bg_payment_analysis.png",
+          "type": "Image"
+        },
+        {
+          "name": "bg_product_analysis.png",
+          "path": "bg_product_analysis.png",
+          "type": "Image"
+        },
+        {
+          "name": "bg_sales_trend.png",
+          "path": "bg_sales_trend.png",
+          "type": "Image"
+        },
+        {
+          "name": "dark_blue_theme.json",
+          "path": "dark_blue_theme.json",
+          "type": "CustomTheme"
+        }
+      ]
+    }
+  ],
+  "settings": {
+    "useStylableVisualContainerHeader": true,
+    "exportDataMode": "AllowSummarized",
+    "defaultDrillFilterOtherVisuals": true,
+    "useEnhancedTooltips": false
+  }
+}

@@ -1,0 +1,16 @@
+# Power BI local cache and user settings
+.pbi/
+**/.pbi/
+*.pbix.bak
+*.tmp
+~$*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Python / Node
+__pycache__/
+node_modules/

@@ -1,0 +1,27 @@
+LocationID,City,State,Region
+L01,Mumbai,Maharashtra,West
+L02,Pune,Maharashtra,West
+L03,Nagpur,Maharashtra,West
+L04,Lucknow,Uttar Pradesh,North
+L05,Noida,Uttar Pradesh,North
+L06,Kanpur,Uttar Pradesh,North
+L07,Varanasi,Uttar Pradesh,North
+L08,Bengaluru,Karnataka,South
+L09,Mysuru,Karnataka,South
+L10,Chennai,Tamil Nadu,South
+L11,Coimbatore,Tamil Nadu,South
+L12,Ahmedabad,Gujarat,West
+L13,Surat,Gujarat,West
+L14,New Delhi,Delhi,North
+L15,Kolkata,West Bengal,East
+L16,Patna,Bihar,East
+L17,Bhubaneswar,Odisha,East
+L18,Ranchi,Jharkhand,East
+L19,Indore,Madhya Pradesh,West
+L20,Bhopal,Madhya Pradesh,West
+L21,Gurugram,Haryana,North
+L22,Ludhiana,Punjab,North
+L23,Jaipur,Rajasthan,North
+L24,Panaji,Goa,West
+L25,Hyderabad,Telangana,South
+L26,Kochi,Kerala,South

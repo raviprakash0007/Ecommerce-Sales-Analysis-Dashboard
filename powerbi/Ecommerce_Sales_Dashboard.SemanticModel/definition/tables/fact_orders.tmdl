@@ -1,0 +1,151 @@
+table fact_orders
+	lineageTag: ea18ab96-3096-42df-8529-b5c80a677fbd
+
+	column OrderID
+		dataType: string
+		lineageTag: 01857a0b-b22f-4384-8a9e-c2e958cfaae0
+		summarizeBy: none
+		sourceColumn: OrderID
+
+	column OrderDate
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		lineageTag: 82d5e7f9-b7b5-42f4-9821-ba802eb8ce61
+		summarizeBy: none
+		sourceColumn: OrderDate
+
+	column CustomerID
+		dataType: string
+		lineageTag: 051220e3-bac0-4502-afd3-8f7c828d09d6
+		summarizeBy: none
+		sourceColumn: CustomerID
+
+	column ProductID
+		dataType: string
+		lineageTag: 1f6d8865-a3a5-4dc8-b54d-04618e485b15
+		summarizeBy: none
+		sourceColumn: ProductID
+
+	column LocationID
+		dataType: string
+		lineageTag: 06109357-9b5a-4bbf-b0cd-d1fac0f65915
+		summarizeBy: none
+		sourceColumn: LocationID
+
+	column Qty
+		dataType: int64
+		formatString: #,##0
+		lineageTag: fff8a817-ccb7-4740-a525-c1e62732e465
+		summarizeBy: sum
+		sourceColumn: Qty
+
+	column Sales
+		dataType: int64
+		formatString: """₹""#,##0"""
+		lineageTag: 14678714-aa8e-45c3-a082-3634e9c5b808
+		summarizeBy: sum
+		sourceColumn: Sales
+
+	column Profit
+		dataType: int64
+		formatString: """₹""#,##0"""
+		lineageTag: 3d603ee3-7264-4fdf-9930-7fd2c41042b6
+		summarizeBy: sum
+		sourceColumn: Profit
+
+	column Status
+		dataType: string
+		lineageTag: cc146979-15e5-46a9-9c25-d86d95de37ee
+		summarizeBy: none
+		sourceColumn: Status
+
+	column 'Order Margin %' = DIVIDE ( fact_orders[Profit], fact_orders[Sales] )
+		dataType: double
+		formatString: 0.0%
+		lineageTag: b5ce46e0-4bd5-4f5f-ba4d-7e934c4056b9
+		summarizeBy: none
+
+	column 'Realized Unit Price' = DIVIDE ( fact_orders[Sales], fact_orders[Qty] )
+		dataType: double
+		formatString: #,##0
+		lineageTag: 93727a4e-c098-4e9a-ba5f-f71d81691deb
+		summarizeBy: none
+
+	column 'Order Value Band' =
+			SWITCH (
+			    TRUE (),
+			    fact_orders[Sales] < 2000,  "1. Under 2K",
+			    fact_orders[Sales] < 5000,  "2. 2K - 5K",
+			    fact_orders[Sales] < 10000, "3. 5K - 10K",
+			    fact_orders[Sales] < 20000, "4. 10K - 20K",
+			    "5. 20K and above"
+			)
+		dataType: string
+		lineageTag: 9b43dfea-4f23-4db1-b13c-f7d5de2fa6d2
+		summarizeBy: none
+
+	column 'Is Cancelled' = IF ( fact_orders[Status] = "Cancelled", 1, 0 )
+		dataType: int64
+		formatString: 0
+		lineageTag: f299deb9-d1ec-463e-9f77-7bc2e70aadc5
+		summarizeBy: none
+
+	column 'Order Month' = DATE ( YEAR ( fact_orders[OrderDate] ), MONTH ( fact_orders[OrderDate] ), 1 )
+		dataType: dateTime
+		formatString: mmm yyyy
+		lineageTag: bfbd8347-411f-4707-8d08-c71fe9309688
+		summarizeBy: none
+
+	column 'Order Quarter' = "Q" & ROUNDUP ( MONTH ( fact_orders[OrderDate] ) / 3, 0 )
+		dataType: string
+		lineageTag: 72e946ea-56f2-42b2-abf6-4126bad70d73
+		summarizeBy: none
+
+	partition fact_orders = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(
+				        Binary.Decompress(Binary.FromText("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" & "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" & "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" & "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", BinaryEncoding.Base64), Compression.Deflate),
+				        [Delimiter = ",", Columns = 9, Encoding = 65001, QuoteStyle = QuoteStyle.Csv]
+				    ),
+				    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				    Typed = Table.TransformColumnTypes(
+				        Promoted,
+				        {
+				            {"OrderID", type text}, {"OrderDate", type date}, {"CustomerID", type text},
+				            {"ProductID", type text}, {"LocationID", type text}, {"Qty", Int64.Type},
+				            {"Sales", Int64.Type}, {"Profit", Int64.Type}, {"Status", type text}
+				        },
+				        "en-US"
+				    ),
+				    Trimmed = Table.TransformColumns(
+				        Typed,
+				        {
+				            {"OrderID", each Text.Upper(Text.Trim(_)), type text},
+				            {"CustomerID", each Text.Upper(Text.Trim(_)), type text},
+				            {"ProductID", each Text.Upper(Text.Trim(_)), type text},
+				            {"LocationID", each Text.Upper(Text.Trim(_)), type text},
+				            {"Status", each Text.Proper(Text.Trim(_)), type text}
+				        }
+				    ),
+				    NoDuplicates = Table.Distinct(Trimmed, {"OrderID"}),
+				    NoMissingKeys = Table.SelectRows(
+				        NoDuplicates,
+				        each [OrderID] <> null and [OrderID] <> ""
+				            and [OrderDate] <> null and [CustomerID] <> null
+				            and [ProductID] <> null and [LocationID] <> null
+				    ),
+				    FilledProfit = Table.ReplaceValue(NoMissingKeys, null, 0, Replacer.ReplaceValue, {"Profit"}),
+				    FilledQty = Table.ReplaceValue(FilledProfit, null, 1, Replacer.ReplaceValue, {"Qty"}),
+				    ValidRows = Table.SelectRows(
+				        FilledQty,
+				        each [Sales] <> null and [Sales] > 0 and [Qty] > 0
+				            and List.Contains({"Delivered", "Shipped", "Cancelled"}, [Status])
+				    ),
+				    Sorted = Table.Sort(ValidRows, {{"OrderDate", Order.Ascending}, {"OrderID", Order.Ascending}})
+				in
+				    Sorted
+
+	annotation PBI_ResultType = Table
+

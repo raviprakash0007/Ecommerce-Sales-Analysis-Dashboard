@@ -1,0 +1,98 @@
+table dim_customers
+	lineageTag: b951a578-220b-45c7-afd9-70e52d731835
+
+	column CustomerID
+		dataType: string
+		lineageTag: 0661307a-9f82-4010-ae96-aa5ee0ca94eb
+		summarizeBy: none
+		sourceColumn: CustomerID
+
+	column CustomerName
+		dataType: string
+		lineageTag: 3b49ca2f-a67c-43e2-a3f4-892ecbf2a5d7
+		summarizeBy: none
+		sourceColumn: CustomerName
+
+	column Segment
+		dataType: string
+		lineageTag: 6565f06c-2013-43be-a298-f1188fba8c83
+		summarizeBy: none
+		sourceColumn: Segment
+
+	column 'Customer Sales' = CALCULATE ( SUM ( fact_orders[Sales] ) )
+		dataType: int64
+		formatString: """₹""#,##0"""
+		lineageTag: 9df34b6e-907c-4a93-ba66-80cc30735cea
+		summarizeBy: none
+
+	column 'Customer Profit' = CALCULATE ( SUM ( fact_orders[Profit] ) )
+		dataType: int64
+		formatString: """₹""#,##0"""
+		lineageTag: f4bd94fa-1a33-482b-8e34-8f6496aea9bb
+		summarizeBy: none
+
+	column 'Customer Orders' = CALCULATE ( COUNTROWS ( fact_orders ) )
+		dataType: int64
+		formatString: 0
+		lineageTag: ac04c9b0-63a7-4e5d-9997-a2943d3e162b
+		summarizeBy: none
+
+	column 'Customer Sales Rank' = RANKX ( dim_customers, dim_customers[Customer Sales], , DESC, DENSE )
+		dataType: int64
+		formatString: 0
+		lineageTag: 1961ab84-5eab-4812-83f7-a5db17053ff3
+		summarizeBy: none
+
+	column 'Top 10 Flag' = IF ( dim_customers[Customer Sales Rank] <= 10, "Top 10", "Others" )
+		dataType: string
+		lineageTag: 2133581d-8c51-4491-9327-8189f62c5003
+		summarizeBy: none
+
+	column 'Buyer Type' = IF ( dim_customers[Customer Orders] > 1, "Repeat Buyer", "One-time Buyer" )
+		dataType: string
+		lineageTag: 5b6023b6-831b-41ed-b857-b65465ba3d75
+		summarizeBy: none
+
+	partition dim_customers = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(
+				        Binary.Decompress(Binary.FromText("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" & "EbBawIp8K1P08Mrup3h3FFCB5pk0FYs7nwevhUK80pLSvscWqqm8+tFgNsrLuf4B2ahuzChRg9U2Ad1rCmCNK5+iE6hBbN83Ry7LYQNuI7VIScGA1+jOb082piVM3XGCSZejhX4ZgBs1hsqQMeA22udeXo2Ht60fTOEqfxxCftg3XgwobrNxLv8G+EaXoXv0Mf6eNGBlpcg1ILmg4kLEjNLMDPuD8Pelm5ELtzUq6zTvDGgUx0DZYDGgurCGFFTG35pSQy/LIkZl7dVYRBrF8FrboW5JV0TWM6C5VL4c4lMOe+8tchiTLllT08KA6Kgzlem0AdFxmJaNP6N7vnoVuwDXEfOURtR8i5bjgNGxvVjlFwPEC8AvfMVwVs/lyIDvgjOKJpQB2tGiKvxkQHZfQuf6JX+nowmKRr8xPTtj2VE3hrsxtVsFA7wLRq5FCzCPllmBTOM7b+Euo5wUjEeBXRFUA9AL9eY+DEB6oTbK7/oNUO/r4qktz2zGRgkQwGpsz2V3XjYayx2aGENySSkFSI+2XLiWfQzjGS+wSiGfBpS3baXsY5iOw4GUjVYIwgs3CcLpQXhMy6LtYcB33OlNGtyx+FUEoeP8V4VjA8i7yZsAPOKUaoZik8C80CEQodBzn0Y+1cQncnzfmeOr1oxQTG8Zr2qe2XeEF/uS2PgGHTcwc7QxoDxK2DIW+5GATeRX07Pd5X8D77ZUmu7dzcC9deFvg2Y3rMbdRndbTz8XSqAdNWvzFoMZ4nciEhwM6I6awfvMAMAjkJPHCsBjcRNuPnC2F/I1sn0r7pRuUoV6jpoEJcMSA8ALo5e3IQagRxiZ85UZuTOTpa8x2bYCJeA7ahrsDwN8x+/VFjCRu5bCCsgLPpsjvpkUt3WFg4PuSIXzrfO9qXSjydL3HqI4M4C68E1RBXmAdtQOyKjfTCm95dWJmUYW4L3GThOJVoFptm0Z2vep0raKDzepjQXWkZPl2du2Jna9ki/ZNgV0OTE3YEPqljPHyxThsbYd+OqtWpfb1Jfbo6VtJ4rYvDtiPdKFD0nKN/y3b1sKKnOdVVyxZrdz1gNdaE9kIG5V7D+X/mtVF1ukqZK2wDjuae7raJt9BJfHoPU8t4VtaUfFSJvnUutpLhQCezC2WvEnHEnyLICOOXIXa1ZzSzKnMKv5lrzMolbHb6KkgXWfSWTKGNZ/A7fZIr9rsWC5UC+WTQqrp1h2UuYjK6Xb0iL2rVGhZvmg/rQmfTGSrwNoF8C4PHtwHb0hUo018W5NaLU1XMvWMogF1wX/3kO1NbEHn8WqmbgpJw7ZcrtC+APwjcbOt+b7c6FpkEuQtYbvyXauYNNVU57OrO0oGwinBbeF7rQQMmtjY2r3fOQPVdIXg9bypxEfaELHnUmBBrZjYMlcvIvNyFKuOsNKIT0TrBa+cMg7lbbj7Qq16SKmVsTedixu0lO6kR6L4AKikRdLPLDAs3jXndcS1l+dxoIh5lzrES3EutxXn74DKeMEoEZiU5yT/+pt+0n6HBAtaFCePm0f79JK2LB9wnPhNKA0slKp2UNLDVDpOAN34vfuOrCO8ynK0fhKVQTKYLnR/oHHDXwLUYKHBb3Fyj7/pNEC3oJaVgMfCEfgJbwABMcyKjO+9Y26rZNSGm9U5JuCQ2zo021M9oH6jZFf4zHS4kf6LKjsI9uRqV02ce0YL9UrrQbruS50VJNT/h8=", BinaryEncoding.Base64), Compression.Deflate),
+				        [Delimiter = ",", Columns = 3, Encoding = 65001, QuoteStyle = QuoteStyle.Csv]
+				    ),
+				    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				    Typed = Table.TransformColumnTypes(
+				        Promoted,
+				        {{"CustomerID", type text}, {"CustomerName", type text}, {"Segment", type text}},
+				        "en-US"
+				    ),
+				    Cleaned = Table.TransformColumns(
+				        Typed,
+				        {
+				            {"CustomerID", each Text.Upper(Text.Trim(_)), type text},
+				            {"CustomerName", each Text.Proper(Text.Trim(_)), type text},
+				            {
+				                "Segment",
+				                each
+				                    let s = Text.Upper(Text.Trim(_))
+				                    in if s = "VIP" then "VIP" else Text.Proper(s),
+				                type text
+				            }
+				        }
+				    ),
+				    FilledSegment = Table.ReplaceValue(
+				        Cleaned,
+				        null,
+				        "New",
+				        Replacer.ReplaceValue,
+				        {"Segment"}
+				    ),
+				    NoMissing = Table.SelectRows(FilledSegment, each [CustomerID] <> null and [CustomerID] <> ""),
+				    NoDuplicates = Table.Distinct(NoMissing, {"CustomerID"}),
+				    Sorted = Table.Sort(NoDuplicates, {{"CustomerID", Order.Ascending}})
+				in
+				    Sorted
+
+	annotation PBI_ResultType = Table
+

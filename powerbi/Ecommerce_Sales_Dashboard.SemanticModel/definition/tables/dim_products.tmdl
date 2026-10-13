@@ -1,0 +1,114 @@
+table dim_products
+	lineageTag: 922fb74b-a1b9-4f39-8213-5ca92a8309a0
+
+	column ProductID
+		dataType: string
+		lineageTag: e01ecd33-ade9-4aae-bb8d-fc7b8882888a
+		summarizeBy: none
+		sourceColumn: ProductID
+
+	column ProductName
+		dataType: string
+		lineageTag: 75c5b787-c518-46e9-888b-5d95e1e0316d
+		summarizeBy: none
+		sourceColumn: ProductName
+
+	column Category
+		dataType: string
+		lineageTag: 2c8923bd-279b-44a2-9c62-467bd1eb17a5
+		summarizeBy: none
+		sourceColumn: Category
+
+	column UnitPrice
+		dataType: int64
+		formatString: #,##0
+		lineageTag: 954ab9de-856f-43ac-894f-3661549cfd19
+		summarizeBy: none
+		sourceColumn: UnitPrice
+
+	column 'Product Sales' = CALCULATE ( SUM ( fact_orders[Sales] ) )
+		dataType: int64
+		formatString: """₹""#,##0"""
+		lineageTag: de4395c7-f4cb-4a3e-ba01-7c96a406907a
+		summarizeBy: none
+
+	column 'Product Profit' = CALCULATE ( SUM ( fact_orders[Profit] ) )
+		dataType: int64
+		formatString: """₹""#,##0"""
+		lineageTag: cb30489c-1769-4088-8974-2dee2bcf3401
+		summarizeBy: none
+
+	column 'Product Qty' = CALCULATE ( SUM ( fact_orders[Qty] ) )
+		dataType: int64
+		formatString: 0
+		lineageTag: 163d69a8-57d5-4f72-870b-8650ecfe6f90
+		summarizeBy: none
+
+	column 'Sales Rank' = RANKX ( dim_products, dim_products[Product Sales], , DESC, DENSE )
+		dataType: int64
+		formatString: 0
+		lineageTag: 55ba1ce2-ae55-4770-b78c-c6b5f001ce84
+		summarizeBy: none
+
+	column 'Profit Rank' = RANKX ( dim_products, dim_products[Product Profit], , DESC, DENSE )
+		dataType: int64
+		formatString: 0
+		lineageTag: c1cc34aa-44ad-4eb4-8738-c876603a0522
+		summarizeBy: none
+
+	column 'Top 10 Sales Flag' = IF ( dim_products[Sales Rank] <= 10, "Top 10", "Others" )
+		dataType: string
+		lineageTag: 4825f0e7-8c2d-4c1b-af5e-feda42e78ef7
+		summarizeBy: none
+
+	column 'Top 5 Sales Flag' = IF ( dim_products[Sales Rank] <= 5, "Top 5", "Others" )
+		dataType: string
+		lineageTag: 5ae986de-c593-47dc-93d1-4d30e2b6d0a8
+		summarizeBy: none
+
+	column 'Top 5 Profit Flag' = IF ( dim_products[Profit Rank] <= 5, "Top 5", "Others" )
+		dataType: string
+		lineageTag: de9a0a41-df88-4995-88ff-999fda000487
+		summarizeBy: none
+
+	column 'Price Band' =
+			SWITCH (
+			    TRUE (),
+			    dim_products[UnitPrice] < 1500, "Budget",
+			    dim_products[UnitPrice] < 5000, "Mid-range",
+			    "Premium"
+			)
+		dataType: string
+		lineageTag: b4c235c1-e18d-41ce-b281-e2dd2c6f27aa
+		summarizeBy: none
+
+	partition dim_products = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(
+				        Binary.Decompress(Binary.FromText("bVPLbtswELznK3jrZQOID8nS1c6rSdMakducGWltEZZFg6LQpl/fJVO0lJKboJ2dnZ0dbp1tp8Z/voLt29dXfULYaI8H617h+2D81pkGL7ZZxsFsOzsg4zlc99h4ZwfTjFCWxSrUBXzRZ2/P7Ar7foZYVWUVEBLuULfnQDLOAFKJMgAU1CftPHvWvulmCJFVRUDkUOvTOA0Hdqt7/euV1ULOgFxJJQOygJ1+6dEznl2aYUHHs2IVRa/+Ttz9YEq+x1WFzAOshHU/obfWd6w+oz6iW0wtVdyggmfjsMdxZNfavUztfFEus6iOZ3CrT4bW2NhhtD3OHeVZ8ItzuooZ/HIWrzIRygK29ic6ttbDcbGdiCfhEh7pj7eOCfWBCZyXEabgyhyM1z3b0PmdnlsgsuA8Hf3OnpDtOtTe4YKoyCNRATfGD2F50tQuNGWruDk5bvea1ejhZnKkbiK2alUEn3lJSoZgS7xdClBKBUAF3/Z7CiTbdNq4BCBFmRFAZPAQ+mvzG9ka2wSRyyq4Kjg8a9c6+5Ly51wFT4WAtbXHscN+n1SLtxhQ1DZ2v0d8J68QZVhOKKAghVeT1FYVj80UXT+1r/Q8xmPaKsuQHFHAEza9Geigy91yIYK9gqzrLLIn3cwI8uidIO8cWf+Re0WVR3MqWKMe6DiHmXbFqSgzeMTh08juiZ6Os+kp7ERGzsbDSfKNAhAQcc5/ADkfvJMCdpd1Z1zSSxELg6X81/swOa8Tch7FSwX3pCwlzfMQO5nDjXUniuaCWVKgQr2gWNrWYFKRIlbILe0QU51lXLSEnaMd2VYPPpko6UWFcnjC4dHR09TpwCJ2qwzqs3V+ZOEWqWBRlRd/AA==", BinaryEncoding.Base64), Compression.Deflate),
+				        [Delimiter = ",", Columns = 4, Encoding = 65001, QuoteStyle = QuoteStyle.Csv]
+				    ),
+				    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				    Typed = Table.TransformColumnTypes(
+				        Promoted,
+				        {{"ProductID", type text}, {"ProductName", type text}, {"Category", type text}, {"UnitPrice", Int64.Type}},
+				        "en-US"
+				    ),
+				    Cleaned = Table.TransformColumns(
+				        Typed,
+				        {
+				            {"ProductID", each Text.Upper(Text.Trim(_)), type text},
+				            {"ProductName", each Text.Trim(_), type text},
+				            {"Category", each Text.Proper(Text.Trim(_)), type text}
+				        }
+				    ),
+				    NoMissing = Table.SelectRows(Cleaned, each [ProductID] <> null and [ProductID] <> "" and [Category] <> null),
+				    NoDuplicates = Table.Distinct(NoMissing, {"ProductID"}),
+				    Sorted = Table.Sort(NoDuplicates, {{"ProductID", Order.Ascending}})
+				in
+				    Sorted
+
+	annotation PBI_ResultType = Table
+
